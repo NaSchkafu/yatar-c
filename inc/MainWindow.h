@@ -10,9 +10,12 @@
 
 class MainWindow : public AppBar {
 public:
-    MainWindow();
-    int messageLoop();
+  MainWindow();
+  virtual ~MainWindow();
+  int messageLoop();
 
+private:
+  HHOOK m_hotkeyHook;
 };
 
 

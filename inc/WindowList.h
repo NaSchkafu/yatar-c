@@ -10,27 +10,28 @@
 
 #include <windows.h>
 
-struct Window
-{
-    std::wstring title;
-    HWND hwnd;
+struct Window {
+  // Handled by Window List
+  std::wstring title;
+  HWND hwnd;
 
-	RECT appBarRect;
+  // AppBar specific data
+  RECT appBarRect;
 };
 
 class WindowList {
 public:
-    void update();
-    const std::vector<Window>& windows() const;
+  void update();
+  const std::vector<Window>& windows() const;
 
 private:
-    bool isTabbarWindow(HWND hwnd);
-    void insertWindow(HWND hwnd);
+  bool isTabbarWindow(HWND hwnd);
+  void insertWindow(HWND hwnd);
 
-    static BOOL CALLBACK enumWindowsProc(HWND hwnd, LPARAM lParam);
+  static BOOL CALLBACK enumWindowsProc(HWND hwnd, LPARAM lParam);
 
 private:
-    std::vector<Window> m_windows;
+  std::vector<Window> m_windows;
 };
 
 
