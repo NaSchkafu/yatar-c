@@ -15,7 +15,7 @@ public:
   int messageLoop();
 
 private:
-  HHOOK m_hotkeyHook;
+  void registerKeys();
 };
 
 

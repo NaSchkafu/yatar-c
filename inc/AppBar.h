@@ -23,15 +23,18 @@ public:
 
   void update();
 
+  void switchToIdx(int idx);
+
 private:
   void createWindow();
   bool setAsAppBar();
   void setPosition();
   void drawWindowList();
-
   static LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
   void clicked(SHORT mouseX, SHORT mouseY);
+  void activateWindow(const Window & w);
   void drawRects(SHORT mouseX, SHORT mouseY);
+
   static void registerClass();
 
   void updateList();

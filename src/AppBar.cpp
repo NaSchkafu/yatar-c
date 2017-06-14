@@ -7,6 +7,7 @@
 #include <algorithm>
 #include "MainWindow.h"
 #include "AppBar.h"
+#include <future>
 
 std::map<HWND, AppBar*> registry;
 
@@ -66,11 +67,29 @@ void AppBar::clicked(SHORT mouseX, SHORT mouseY)
   ScreenToClient(m_hwnd, &p);
   for (auto &w : m_drawnWindows) {
     if (PtInRect(&w.appBarRect, p)) {
-      auto hwnd = w.hwnd;
-      SetForegroundWindow(hwnd);
-      auto flag = IsIconic(hwnd) ? SW_RESTORE : SW_SHOW;
-      ShowWindow(hwnd, flag);
+      activateWindow(w);
     }
+  }
+}
+
+void AppBar::activateWindow(const Window &w)
+{
+  auto foregroundThread = GetWindowThreadProcessId(GetForegroundWindow(), nullptr);
+  auto myThread = GetCurrentThreadId();
+  if (foregroundThread != myThread) {
+    AttachThreadInput(foregroundThread, myThread, TRUE);
+    SetForegroundWindow(m_hwnd);
+    SetFocus(m_hwnd);
+  }
+
+  auto hwnd = w.hwnd;
+  SetForegroundWindow(hwnd);
+  auto flag = IsIconic(hwnd) ? SW_RESTORE : SW_SHOW;
+  ShowWindow(hwnd, flag);
+
+
+  if (foregroundThread != myThread) {
+    AttachThreadInput(foregroundThread, myThread, FALSE);
   }
 }
 
@@ -126,6 +145,8 @@ AppBar::AppBar()
 
   setAsAppBar();
   setPosition();
+
+  update();
 
   // Create timer
   UINT_PTR timerId = SetTimer(m_hwnd, 10, 5000u, NULL);
@@ -259,7 +280,12 @@ void AppBar::drawWindowList()
   }
 }
 
-
+void AppBar::switchToIdx(int idx)
+{
+  if (idx < m_windows.windows().size()) {
+    activateWindow(m_drawnWindows[idx]);
+  }
+}
 
 bool AppBar::S_ALREADY_REGISTERED = false;
 const wchar_t* AppBar::S_CLASS_NAME = TEXT("TABBINGBAR");
