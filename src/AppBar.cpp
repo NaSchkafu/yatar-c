@@ -7,6 +7,7 @@
 #include <algorithm>
 #include "MainWindow.h"
 #include "AppBar.h"
+#include "ShellHook.h"
 #include <future>
 
 std::map<HWND, AppBar*> registry;
@@ -72,7 +73,7 @@ void AppBar::clicked(SHORT mouseX, SHORT mouseY)
   }
 }
 
-void AppBar::activateWindow(const Window &w)
+void AppBar::activateWindow(const Window &w) const
 {
   auto foregroundThread = GetWindowThreadProcessId(GetForegroundWindow(), nullptr);
   auto myThread = GetCurrentThreadId();
@@ -90,6 +91,21 @@ void AppBar::activateWindow(const Window &w)
 
   if (foregroundThread != myThread) {
     AttachThreadInput(foregroundThread, myThread, FALSE);
+  }
+}
+
+void AppBar::activeWindowChanged(HWND hwnd, BOOL )
+{
+  bool found = false;
+  for (auto &w : m_drawnWindows) {
+    if (w.hwnd == hwnd) {
+      found = true;
+      break;
+    }
+  }
+
+  if (found) {
+    drawWindowList();
   }
 }
 
@@ -147,6 +163,8 @@ AppBar::AppBar()
   setPosition();
 
   update();
+
+  registerWindowActivatedCallback([this](HWND hwnd, BOOL fullScreen) { this->activeWindowChanged(hwnd, fullScreen); });
 
   // Create timer
   UINT_PTR timerId = SetTimer(m_hwnd, 10, 5000u, NULL);

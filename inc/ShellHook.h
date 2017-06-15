@@ -3,7 +3,7 @@
 #include <Windows.h>
 #include <functional>
 
-#ifdef DLL_BUILD
+#ifdef _WINDLL
 #define API_EXPORT __declspec(dllexport)
 #else
 #define API_EXPORT __declspec(dllimport)
@@ -17,5 +17,7 @@ struct Hotkey {
   std::function<void()> callback;
 };
 
+using WindowCallback = std::function<void(HWND, BOOL)>;
 
-API_EXPORT bool registerHotkey(Hotkey key);
+API_EXPORT void registerHotkey(Hotkey key);
+API_EXPORT void registerWindowActivatedCallback(WindowCallback callback);

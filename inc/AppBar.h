@@ -32,7 +32,8 @@ private:
   void drawWindowList();
   static LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
   void clicked(SHORT mouseX, SHORT mouseY);
-  void activateWindow(const Window & w);
+  void activateWindow(const Window& w) const;
+  void activeWindowChanged(HWND hwnd, BOOL fullScreen);
   void drawRects(SHORT mouseX, SHORT mouseY);
 
   static void registerClass();
