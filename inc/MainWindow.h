@@ -16,6 +16,10 @@ public:
 
 private:
   void registerKeys();
+
+private:
+  UINT m_shellHookId;
+  static const auto S_CHANGE_WIN_HOTKEY = 1;
 };
 
 

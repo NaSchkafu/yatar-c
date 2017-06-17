@@ -9,19 +9,16 @@
 MainWindow::MainWindow()
 {
   registerKeys();
+
+  if (!RegisterShellHookWindow(hwnd())) {
+    throw "Could not register shell hook window";
+  }
+  m_shellHookId = RegisterWindowMessage(TEXT("SHELLHOOK"));
 }
 
 void MainWindow::registerKeys()
 {
-  for (DWORD i = 0x31; i <= 0x39; i++) {
-    Hotkey key;
-    auto idx = i - 0x31;
-    key.callback = [this, idx]() { this->switchToIdx(idx); };
-    key.modifier = VK_LWIN;
-    key.key = i;
-    key.supressChain = true;
-    registerHotkey(key);
-  }
+  RegisterHotKey(NULL, S_CHANGE_WIN_HOTKEY, MOD_WIN, 0x4b);
 }
 
 MainWindow::~MainWindow()
@@ -32,27 +29,29 @@ int MainWindow::messageLoop()
 {
   MSG msg;
   while(GetMessage(&msg, NULL, 0, 0) > 0) {
+    if (msg.message == m_shellHookId) {
+      switch(msg.wParam) {
+      case HSHELL_WINDOWACTIVATED:
+        activeWindowChanged(reinterpret_cast<HWND>(msg.lParam));
+        break;
+      case HSHELL_WINDOWCREATED:
+      case HSHELL_WINDOWDESTROYED:
+        update();
+        break;
+      }
+    }
+
     if (msg.message == WM_KEYUP && msg.wParam == VK_ESCAPE) {
       break;
+    } else if (msg.message == WM_HOTKEY && msg.wParam == S_CHANGE_WIN_HOTKEY) {
+      selectWindow();
     }
 
     // TODO WM_DISPLAYCHANGE (Desktop erweitert)
-    if (msg.message == WM_TIMER && msg.wParam == 10) {
-      update();
-    }
+
     TranslateMessage(&msg);
     DispatchMessage(&msg);
   }
 
   return msg.wParam;
 }
-
-
-
-
-
-
-
-
-
-

@@ -25,6 +25,10 @@ public:
 
   void switchToIdx(int idx);
 
+  HWND hwnd() const;
+  void selectWindow();
+  void activeWindowChanged(HWND hwnd);
+
 private:
   void createWindow();
   bool setAsAppBar();
@@ -32,8 +36,8 @@ private:
   void drawWindowList();
   static LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
   void clicked(SHORT mouseX, SHORT mouseY);
-  void activateWindow(const Window& w) const;
-  void activeWindowChanged(HWND hwnd, BOOL fullScreen);
+  void activateWindow(HWND hwnd) const;
+  void activateWindow(const Window &w) const;
   void drawRects(SHORT mouseX, SHORT mouseY);
 
   static void registerClass();
@@ -49,9 +53,9 @@ private:
 
   WindowList m_windows;
   std::vector<Window> m_drawnWindows;
-  std::unique_ptr<UINT_PTR, handle_deleter<UINT_PTR> > m_timer;
 
   bool m_isTracked;
+  bool m_selectMode;
 private:
   static bool S_ALREADY_REGISTERED;
   static const wchar_t* S_CLASS_NAME;

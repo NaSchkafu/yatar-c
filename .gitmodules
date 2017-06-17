@@ -1,0 +1,3 @@
+[submodule "shellhook"]
+	path = shellhook
+	url = https://github.com/NaSchkafu/ShellHook.git

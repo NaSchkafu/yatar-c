@@ -73,7 +73,7 @@ void AppBar::clicked(SHORT mouseX, SHORT mouseY)
   }
 }
 
-void AppBar::activateWindow(const Window &w) const
+void AppBar::activateWindow(HWND hwnd) const
 {
   auto foregroundThread = GetWindowThreadProcessId(GetForegroundWindow(), nullptr);
   auto myThread = GetCurrentThreadId();
@@ -83,7 +83,6 @@ void AppBar::activateWindow(const Window &w) const
     SetFocus(m_hwnd);
   }
 
-  auto hwnd = w.hwnd;
   SetForegroundWindow(hwnd);
   auto flag = IsIconic(hwnd) ? SW_RESTORE : SW_SHOW;
   ShowWindow(hwnd, flag);
@@ -94,9 +93,15 @@ void AppBar::activateWindow(const Window &w) const
   }
 }
 
-void AppBar::activeWindowChanged(HWND hwnd, BOOL )
+void AppBar::activateWindow(const Window& w) const
 {
-  bool found = false;
+  activateWindow(w.hwnd);
+}
+
+
+void AppBar::activeWindowChanged(HWND hwnd )
+{
+  auto found = false;
   for (auto &w : m_drawnWindows) {
     if (w.hwnd == hwnd) {
       found = true;
@@ -104,6 +109,8 @@ void AppBar::activeWindowChanged(HWND hwnd, BOOL )
     }
   }
 
+  found = found || (m_selectMode && GetForegroundWindow() != m_hwnd);
+  m_selectMode = m_selectMode && GetForegroundWindow() == m_hwnd;
   if (found) {
     drawWindowList();
   }
@@ -163,12 +170,6 @@ AppBar::AppBar()
   setPosition();
 
   update();
-
-  registerWindowActivatedCallback([this](HWND hwnd, BOOL fullScreen) { this->activeWindowChanged(hwnd, fullScreen); });
-
-  // Create timer
-  UINT_PTR timerId = SetTimer(m_hwnd, 10, 5000u, NULL);
-  m_timer = std::unique_ptr<UINT_PTR, handle_deleter<UINT_PTR> > (timerId, handle_deleter<UINT_PTR>(std::bind(KillTimer, m_hwnd, std::placeholders::_1)));
 }
 
 
@@ -275,6 +276,9 @@ void AppBar::drawWindowList()
     for (auto i = 0u; i < m_drawnWindows.size(); i++) {
       auto &window = m_drawnWindows[i];
       window.title = L"[ " + window.title + L" ]";
+      if(m_selectMode && i < 9) {
+        window.title = L"(" + std::to_wstring(i + 1) + L") " + window.title;
+      }
       auto x = rect.left + width * i + (i ? 0 : 1);
       window.appBarRect.left = x;
       window.appBarRect.top = 1 + rect.top;
@@ -303,6 +307,18 @@ void AppBar::switchToIdx(int idx)
   if (idx < m_windows.windows().size()) {
     activateWindow(m_drawnWindows[idx]);
   }
+}
+
+HWND AppBar::hwnd() const
+{
+  return m_hwnd;
+}
+
+void AppBar::selectWindow()
+{
+  m_selectMode = true;
+  drawWindowList();
+  activateWindow(m_hwnd);
 }
 
 bool AppBar::S_ALREADY_REGISTERED = false;
